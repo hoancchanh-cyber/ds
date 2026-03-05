@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
 
 <meta charset="UTF-8">
 <title>Hệ thống quản lý hồ sơ địa chính</title>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+<link rel="stylesheet"
+href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
@@ -22,8 +29,8 @@ font-family:Segoe UI;
 
 .sidebar{
 width:240px;
-height:100vh;
 position:fixed;
+height:100vh;
 background:#1e293b;
 color:white;
 padding:20px;
@@ -37,10 +44,6 @@ border:none;
 color:white;
 padding:10px;
 border-radius:6px;
-}
-
-.sidebar button:hover{
-background:#475569;
 }
 
 .main{
@@ -73,10 +76,10 @@ background:#fef9c3 !important;
 
 <h4>📁 Hồ sơ địa chính</h4>
 
-<button onclick="show('dashboard')">Dashboard</button>
-<button onclick="show('add')">Thêm hồ sơ</button>
-<button onclick="show('list')">Danh sách</button>
-<button onclick="exportExcel()">Xuất Excel</button>
+<button onclick="UI.show('dashboard')">Dashboard</button>
+<button onclick="UI.show('add')">Thêm hồ sơ</button>
+<button onclick="UI.show('list')">Danh sách</button>
+<button onclick="Export.excel()">Xuất Excel</button>
 
 </div>
 
@@ -84,117 +87,15 @@ background:#fef9c3 !important;
 
 <h3>HỆ THỐNG QUẢN LÝ HỒ SƠ</h3>
 
-<!-- DASHBOARD -->
+<div id="dashboard"></div>
 
-<div id="dashboard">
-
-<div class="row mt-3">
-
-<div class="col-md-3">
-<div class="card-box">
-<h6>Tổng hồ sơ</h6>
-<h2 id="total">0</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card-box">
-<h6>Đang xử lý</h6>
-<h2 id="dangXuLy">0</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card-box">
-<h6>Sắp đến hạn</h6>
-<h2 id="sapDenHan">0</h2>
-</div>
-</div>
-
-<div class="col-md-3">
-<div class="card-box">
-<h6>Quá hạn</h6>
-<h2 id="quaHan">0</h2>
-</div>
-</div>
-
-</div>
-
-<div class="card-box mt-4">
-<canvas id="chart"></canvas>
-</div>
-
-</div>
-
-<!-- ADD -->
-
-<div id="add" style="display:none">
-
-<div class="card-box">
-
-<h5>Thêm hồ sơ</h5>
-
-<div class="row">
-
-<div class="col-md-3">
-<input id="maHS" class="form-control" placeholder="Mã hồ sơ">
-</div>
-
-<div class="col-md-3">
-<select id="maThuTuc" class="form-control"></select>
-</div>
-
-<div class="col-md-3">
-<input id="nguoiNop" class="form-control" placeholder="Người nộp">
-</div>
-
-<div class="col-md-3">
-<input type="date" id="ngayNhan" class="form-control">
-</div>
-
-</div>
-
-<div class="row mt-3">
-
-<div class="col-md-3">
-<input id="canBo" class="form-control" placeholder="Cán bộ">
-</div>
-
-<div class="col-md-3">
-<button class="btn btn-primary w-100" onclick="addHoSo()">Lưu</button>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- LIST -->
+<div id="add" style="display:none"></div>
 
 <div id="list" style="display:none">
 
 <div class="card-box">
 
-<div class="row mb-3">
-
-<div class="col-md-3">
-<select id="filterTrangThai" class="form-control">
-<option value="">Tất cả</option>
-<option>Đang xử lý</option>
-<option>Sắp đến hạn</option>
-<option>Quá hạn</option>
-<option>Hoàn thành</option>
-</select>
-</div>
-
-<div class="col-md-3">
-<button class="btn btn-secondary" onclick="locTrangThai()">Lọc</button>
-</div>
-
-</div>
-
-<table id="tableHoSo" class="table table-striped"></table>
+<table id="tableHoSo"></table>
 
 </div>
 
@@ -204,91 +105,110 @@ background:#fef9c3 !important;
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbxAi6WLBCeP87x7iYUP0YvTUw1BJUVsmU0J8tHWKxUz3VhzRDlVLKscaWGSFlEtRP47/exec"
+/***********************
+CONFIG
+************************/
 
-let table
-let globalData=[]
+const CONFIG={
 
-function show(id){
+API:"YOUR_API_LINK"
 
-dashboard.style.display="none"
-add.style.display="none"
-list.style.display="none"
+}
+
+/***********************
+API SERVICE
+************************/
+
+const API={
+
+async getHoSo(){
+
+const r=await fetch(CONFIG.API+"?action=getHoSo")
+return r.json()
+
+},
+
+async getThuTuc(){
+
+const r=await fetch(CONFIG.API+"?action=getThuTuc")
+return r.json()
+
+},
+
+async dashboard(){
+
+const r=await fetch(CONFIG.API+"?action=dashboard")
+return r.json()
+
+},
+
+async add(data){
+
+await fetch(CONFIG.API+"?action=addHoSo",{
+
+method:"POST",
+body:JSON.stringify(data)
+
+})
+
+}
+
+}
+
+/***********************
+UTILS
+************************/
+
+const Utils={
+
+formatDate(d){
+
+return new Date(d).toLocaleDateString()
+
+}
+
+}
+
+/***********************
+UI CONTROL
+************************/
+
+const UI={
+
+show(id){
+
+["dashboard","add","list"].forEach(s=>{
+
+document.getElementById(s).style.display="none"
+
+})
 
 document.getElementById(id).style.display="block"
 
 }
 
-async function dashboardData(){
-
-const res=await fetch(API+"?action=dashboard")
-const data=await res.json()
-
-total.innerText=data.total
-dangXuLy.innerText=data.dangXuLy
-sapDenHan.innerText=data.sapDenHan
-quaHan.innerText=data.quaHan
-
-drawChart(data)
-
 }
 
-function drawChart(data){
+/***********************
+TABLE MODULE
+************************/
 
-new Chart(document.getElementById("chart"),{
+let table
+let globalData=[]
 
-type:"doughnut",
+const Table={
 
-data:{
-labels:["Đang xử lý","Sắp đến hạn","Quá hạn"],
-datasets:[{
-data:[data.dangXuLy,data.sapDenHan,data.quaHan]
-}]
-}
-
-})
-
-}
-
-async function loadThuTuc(){
-
-const res=await fetch(API+"?action=getThuTuc")
-const data=await res.json()
-
-maThuTuc.innerHTML=""
-
-data.slice(1).forEach(r=>{
-
-const opt=document.createElement("option")
-
-opt.value=r[1]
-opt.text=r[2]
-
-maThuTuc.appendChild(opt)
-
-})
-
-}
-
-async function loadTable(){
-
-const res=await fetch(API+"?action=getHoSo")
-const data=await res.json()
+render(data){
 
 globalData=data
-
-renderTable(data.slice(1),data[0])
-
-}
-
-function renderTable(rows,header){
 
 if(table) table.destroy()
 
 table=$('#tableHoSo').DataTable({
 
-data:rows,
-columns:header.map(h=>({title:h})),
+data:data.slice(1),
+
+columns:data[0].map(h=>({title:h})),
 
 createdRow:function(row,data){
 
@@ -310,50 +230,15 @@ $(row).addClass("sapdenhan")
 
 }
 
-function locTrangThai(){
-
-const tt=filterTrangThai.value
-
-if(!tt){
-
-renderTable(globalData.slice(1),globalData[0])
-return
-
 }
 
-const rows=globalData.slice(1).filter(r=>r[11]===tt)
+/***********************
+EXPORT
+************************/
 
-renderTable(rows,globalData[0])
+const Export={
 
-}
-
-async function addHoSo(){
-
-const data={
-
-maHS:maHS.value,
-maThuTuc:maThuTuc.value,
-nguoiNop:nguoiNop.value,
-ngayNhan:ngayNhan.value,
-canBo:canBo.value
-
-}
-
-await fetch(API+"?action=addHoSo",{
-
-method:"POST",
-body:JSON.stringify(data)
-
-})
-
-alert("Đã lưu hồ sơ")
-
-loadTable()
-dashboardData()
-
-}
-
-function exportExcel(){
+excel(){
 
 const ws=XLSX.utils.aoa_to_sheet(globalData)
 
@@ -365,9 +250,21 @@ XLSX.writeFile(wb,"HoSoDiaChinh.xlsx")
 
 }
 
-dashboardData()
-loadThuTuc()
-loadTable()
+}
+
+/***********************
+INIT
+************************/
+
+async function init(){
+
+const data=await API.getHoSo()
+
+Table.render(data)
+
+}
+
+init()
 
 </script>
 
